@@ -1,40 +1,45 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { TaskRepository } from '../database/repos/task.repository';
-import { TaskEntity } from '../database/entities/task.entity';
+import { TaskRepository } from 'src/database/repos/task.repo';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
+import { TaskEntity } from 'src/database/entities/task.entity';
 
 @Injectable()
 export class TasksService {
   constructor(private readonly taskRepository: TaskRepository) {}
 
-  async create(userId: number, taskData: TaskEntity) {
-    return this.taskRepository.create(userId, taskData);
+  async create(
+    createTaskDto: CreateTaskDto,
+    userId: string,
+  ): Promise<TaskEntity> {
+    return await this.taskRepository.create({ ...createTaskDto, userId });
   }
 
-  async findAll(userId: number, status?: string) {
-    return this.taskRepository.findAll(userId, status as any);
+  async findAll(userId: string): Promise<TaskEntity[]> {
+    return await this.taskRepository.findAll({ userId });
   }
 
-  async findOne(id: number, userId: number) {
-    const task = await this.taskRepository.findOne(id, userId);
+  async findOne(id: string): Promise<TaskEntity> {
+    const task = await this.taskRepository.findById(id);
     if (!task) {
       throw new NotFoundException('Task not found');
     }
     return task;
   }
 
-  async update(id: number, userId: number, taskData: Partial<TaskEntity>) {
-    const task = await this.taskRepository.findOne(id, userId);
+  async update(id: string, updateTaskDto: UpdateTaskDto): Promise<TaskEntity> {
+    const task = await this.taskRepository.findById(id);
     if (!task) {
       throw new NotFoundException('Task not found');
     }
-    return this.taskRepository.update(id, userId, taskData);
+    return await this.taskRepository.update(id, updateTaskDto);
   }
 
-  async delete(id: number, userId: number) {
-    const task = await this.taskRepository.findOne(id, userId);
+  async remove(id: string): Promise<void> {
+    const task = await this.taskRepository.findById(id);
     if (!task) {
       throw new NotFoundException('Task not found');
     }
-    return this.taskRepository.delete(id, userId);
+    await this.taskRepository.remove(id);
   }
-} 
+}

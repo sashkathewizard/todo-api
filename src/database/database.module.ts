@@ -1,11 +1,13 @@
-import { Global, Module } from '@nestjs/common';
-import { UserRepository } from './repos/user.repository';
-import { TaskRepository } from './repos/task.repository';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { UserRepository } from './repos/user.repo';
+import { TaskRepository } from './repos/task.repo';
+import { AdminSeeder } from './seeders/admin.seeder';
 import { PrismaService } from './prisma.service';
 
-@Global()
 @Module({
-  providers: [PrismaService, UserRepository, TaskRepository],
-  exports: [UserRepository, TaskRepository],
+  imports: [ConfigModule],
+  providers: [PrismaService, UserRepository, TaskRepository, AdminSeeder],
+  exports: [UserRepository, TaskRepository, AdminSeeder],
 })
 export class DatabaseModule {}

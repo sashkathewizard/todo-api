@@ -1,7 +1,8 @@
-import { Status } from 'src/utils/enums/status.enum';
-
 export class TaskEntity {
+  id: string;
   title: string;
   description?: string;
-  status?: Status;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
 }

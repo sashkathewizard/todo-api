@@ -1,49 +1,92 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { TasksService } from './tasks.service';
-import { TaskEntity } from '../database/entities/task.entity';
-import { JwtAuthGuard } from '../users/guards/jwt-auth.guard';
-import { User } from '../users/decorators/user.decorator';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/security/guards/jwt-auth.guard';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
+import { TaskResponse } from './response/task.response';
+import { UserEntity } from 'src/database/entities/user.entity';
+import { CurrentUser } from 'src/security/decorators/current-user.decorator';
 
 @ApiTags('tasks')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('tasks')
+@UseGuards(JwtAuthGuard)
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new task' })
-  @ApiResponse({ status: 201, description: 'Task successfully created' })
-  create(@Body() taskData: TaskEntity, @User() user: any) {
-    return this.tasksService.create(user.id, taskData);
+  @ApiResponse({
+    status: 201,
+    description: 'Task successfully created',
+    type: TaskResponse,
+  })
+  async create(
+    @CurrentUser() user: UserEntity,
+    @Body() createTaskDto: CreateTaskDto,
+  ): Promise<TaskResponse> {
+    console.log(user);
+    return this.tasksService.create(createTaskDto, user.id);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all tasks' })
-  @ApiResponse({ status: 200, description: 'Return all tasks' })
-  findAll(@User() user: any, @Query('status') status?: string) {
-    return this.tasksService.findAll(user.id, status);
+  @ApiOperation({ summary: 'Get tasks' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of tasks',
+    type: [TaskResponse],
+  })
+  async findAll(@CurrentUser() user: UserEntity): Promise<TaskResponse[]> {
+    return this.tasksService.findAll(user.id);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get task by id' })
-  @ApiResponse({ status: 200, description: 'Return task by id' })
-  findOne(@Param('id') id: string, @User() user: any) {
-    return this.tasksService.findOne(+id, user.id);
+  @ApiOperation({ summary: 'Get task by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Task found',
+    type: TaskResponse,
+  })
+  async findOne(@Param('id') id: string): Promise<TaskResponse> {
+    return this.tasksService.findOne(id);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update task' })
-  @ApiResponse({ status: 200, description: 'Task successfully updated' })
-  update(@Param('id') id: string, @Body() taskData: Partial<TaskEntity>, @User() user: any) {
-    return this.tasksService.update(+id, user.id, taskData);
+  @ApiResponse({
+    status: 200,
+    description: 'Task successfully updated',
+    type: TaskResponse,
+  })
+  async update(
+    @Param('id') id: string,
+    @Body() updateTaskDto: UpdateTaskDto,
+  ): Promise<TaskResponse> {
+    return this.tasksService.update(id, updateTaskDto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete task' })
-  @ApiResponse({ status: 200, description: 'Task successfully deleted' })
-  remove(@Param('id') id: string, @User() user: any) {
-    return this.tasksService.delete(+id, user.id);
+  @ApiResponse({
+    status: 200,
+    description: 'Task successfully deleted',
+  })
+  async remove(@Param('id') id: string): Promise<void> {
+    return this.tasksService.remove(id);
   }
-} 
+}

@@ -7,6 +7,9 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import {
@@ -21,6 +24,7 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskResponse } from './response/task.response';
 import { UserEntity } from 'src/database/entities/user.entity';
 import { CurrentUser } from 'src/security/decorators/current-user.decorator';
+import { Status } from 'src/utils/enums/status.enum';
 
 @ApiTags('tasks')
 @ApiBearerAuth()
@@ -44,17 +48,6 @@ export class TasksController {
     return this.tasksService.create(createTaskDto, user.id);
   }
 
-  @Get()
-  @ApiOperation({ summary: 'Get tasks' })
-  @ApiResponse({
-    status: 200,
-    description: 'List of tasks',
-    type: [TaskResponse],
-  })
-  async findAll(@CurrentUser() user: UserEntity): Promise<TaskResponse[]> {
-    return this.tasksService.findAll(user.id);
-  }
-
   @Get(':id')
   @ApiOperation({ summary: 'Get task by ID' })
   @ApiResponse({
@@ -64,6 +57,26 @@ export class TasksController {
   })
   async findOne(@Param('id') id: string): Promise<TaskResponse> {
     return this.tasksService.findOne(id);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get tasks with filters and sorting' })
+  @ApiResponse({
+    status: 200,
+    description: 'Filtered and sorted list of tasks',
+    type: [TaskResponse],
+  })
+  async findMany(
+    @CurrentUser() user: UserEntity,
+    @Query('status') status: string,
+  ) {
+    if (status && !Object.values(Status).includes(status as Status)) {
+      throw new HttpException(
+        `Invalid status value: ${status}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return this.tasksService.findMany(user.id, { status: status as Status });
   }
 
   @Patch(':id')

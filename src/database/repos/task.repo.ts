@@ -26,7 +26,7 @@ export class TaskRepository {
     });
   }
 
-  async findAll(where: Prisma.TaskWhereInput): Promise<TaskEntity[]> {
+  async findMany(where: Prisma.TaskWhereInput): Promise<TaskEntity[]> {
     return this.prisma.task.findMany({
       where,
       include: {

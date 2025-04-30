@@ -15,8 +15,8 @@ export class TasksService {
     return await this.taskRepository.create({ ...createTaskDto, userId });
   }
 
-  async findAll(userId: string): Promise<TaskEntity[]> {
-    return await this.taskRepository.findAll({ userId });
+  async findMany(userId: string, where?): Promise<TaskEntity[]> {
+    return await this.taskRepository.findMany({ userId, ...where });
   }
 
   async findOne(id: string): Promise<TaskEntity> {

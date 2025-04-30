@@ -75,7 +75,10 @@ export class UsersController {
   }
 
   @Post()
-  @ApiOperation({ summary: 'Create a new user' })
+  @Roles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a new user. route for ADMIN' })
   @ApiResponse({
     status: 201,
     description: 'User successfully created',
@@ -89,7 +92,7 @@ export class UsersController {
   @Roles(Role.ADMIN)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all users' })
+  @ApiOperation({ summary: 'Get all users. route for ADMIN' })
   @ApiResponse({
     status: 200,
     description: 'List of users',
@@ -99,10 +102,20 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  @Get(':id')
+  @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get user by ID' })
+  @ApiOperation({ summary: 'Get user by ID. route for ADMIN' })
+  @ApiResponse({ status: 200, description: 'User found', type: UserResponse })
+  async findMe(@CurrentUser() user: UserEntity): Promise<UserResponse> {
+    return this.usersService.findOne(user.id);
+  }
+
+  @Get(':id')
+  @Roles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get user by ID. route for ADMIN' })
   @ApiResponse({ status: 200, description: 'User found', type: UserResponse })
   async findOne(@Param('id') id: string): Promise<UserResponse> {
     return this.usersService.findOne(id);
@@ -126,9 +139,10 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @Roles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Delete user' })
+  @ApiOperation({ summary: 'Delete user by id. route for ADMIN' })
   @ApiResponse({ status: 200, description: 'User successfully deleted' })
   async remove(@Param('id') id: string): Promise<void> {
     return this.usersService.remove(id);

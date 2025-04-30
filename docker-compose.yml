@@ -8,7 +8,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/todo_db
       - JWT_SECRET=your-secret-key
-      - JWT_EXPIRATION=1в
+      - JWT_EXPIRATION=1d
       - ADMIN_EMAIL=admin@example.com
       - ADMIN_PASSWORD=admin123
       - ADMIN_NAME=Admin
